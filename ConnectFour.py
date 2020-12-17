@@ -172,9 +172,8 @@ def main():
                     drop_piece(board_1, row, col, turn)
 
                 if winning_move(board_1, turn):
-                    label = my_font.render('Congrats Player {}, you won!!'.format(turn), 1, GREEN)
+                    label = my_font.render('Congrats Player {}, you won!!'.format(turn), True, GREEN)
                     SCREEN.blit(label, (15, 10))
-                    # print('Congrats Player {}, you won!!'.format(turn))
                     game_over = True
 
                 print_board(board_1)

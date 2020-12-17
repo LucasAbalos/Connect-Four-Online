@@ -1,6 +1,7 @@
 import numpy
 import pygame
 import sys
+import math
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
@@ -11,6 +12,18 @@ RADIUS = int(SQUARE_SIZE/2 - 5)
 
 BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+GREEN = (0, 255, 0)
+
+pygame.init()
+
+WIDTH = COLUMN_COUNT * SQUARE_SIZE
+HEIGHT = (ROW_COUNT + 1) * SQUARE_SIZE
+
+SIZE = (WIDTH, HEIGHT)
+
+SCREEN = pygame.display.set_mode(SIZE)
 
 
 def creates_board():
@@ -98,11 +111,20 @@ def winning_move(board, piece):
     return False
 
 
-def draw_board(board, screen_):
+def draw_board(board):
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
-            pygame.draw.rect(screen_, BLUE, (c * SQUARE_SIZE, r * SQUARE_SIZE + SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
-            pygame.draw.circle(screen_, BLACK, (int(c * SQUARE_SIZE + SQUARE_SIZE/2), int(r * SQUARE_SIZE + SQUARE_SIZE + SQUARE_SIZE/2)), RADIUS)
+            pygame.draw.rect(SCREEN, BLUE, (c * SQUARE_SIZE, r * SQUARE_SIZE + SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+            pygame.draw.circle(SCREEN, BLACK, (int(c * SQUARE_SIZE + SQUARE_SIZE/2), int(r * SQUARE_SIZE + SQUARE_SIZE + SQUARE_SIZE/2)), RADIUS)
+
+    for c in range(COLUMN_COUNT):
+        for r in range(ROW_COUNT):
+            if board[r][c] == 1:
+                pygame.draw.circle(SCREEN, RED, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), HEIGHT - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
+
+            elif board[r][c] == 2:
+                pygame.draw.circle(SCREEN, YELLOW, (int(c * SQUARE_SIZE + SQUARE_SIZE / 2), HEIGHT - int(r * SQUARE_SIZE + SQUARE_SIZE / 2)), RADIUS)
+    pygame.display.update()
 
 
 def main():
@@ -110,18 +132,11 @@ def main():
     print_board(board_1)
     turn = 1
 
-    pygame.init()
+    game_over = False
 
-    width = COLUMN_COUNT * SQUARE_SIZE
-    height = (ROW_COUNT + 1) * SQUARE_SIZE
+    draw_board(board_1)
 
-    size = (width, height)
-
-    screen = pygame.display.set_mode(size)
-
-    draw_board(board_1, screen)
-
-    pygame.display.update()
+    my_font = pygame.font.SysFont("monospace", 40)
 
     while True:
 
@@ -129,30 +144,48 @@ def main():
             if event.type == pygame.QUIT:
                 sys.exit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEMOTION:
+                pygame.draw.rect(SCREEN, BLACK, (0, 0, WIDTH, SQUARE_SIZE))
+                pos_x = event.pos[0]
+                if turn == 1:
+                    pygame.draw.circle(SCREEN, RED, (pos_x, int(SQUARE_SIZE/2)), RADIUS)
+                if turn == 2:
+                    pygame.draw.circle(SCREEN, YELLOW, (pos_x, int(SQUARE_SIZE / 2)), RADIUS)
+            pygame.display.update()
 
-                # col = 10  # THIS IS A PREDEFINE TO AVOID ERRORS
-                #
-                # if turn == 1:  # ASK FOR PLAYER 1 INPUT
-                #     while col >= 7 or col < 0:
-                #         col = int(input("PLayer 1 make your selection (0,6):"))
-                # if turn == 2:  # ASK FOR PLAYER 2 INPUT
-                #     while col >= 7 or col < 0:
-                #         col = int(input("Player 2 make your selection (0,6):"))
-                #
-                # if is_valid_location(board_1, col):
-                #     row = get_next_open_row(board_1, col)
-                #     drop_piece(board_1, row, col, turn)
-                #
-                # if winning_move(board_1, turn):
-                #     print('Congrats Player {}, you won!!'.format(turn))
-                #     quit()
-                #
-                # turn = turn % 2  # THE FOLLOWING 2 LINES LOOPS BTW PLAY1 AN PLAY2
-                # turn = turn + 1
-                #
-                # print_board(board_1)
-                pass
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pygame.draw.rect(SCREEN, BLACK, (0, 0, WIDTH, SQUARE_SIZE))
+
+                col = 10  # THIS IS A PREDEFINE TO AVOID ERRORS
+
+                if turn == 1:  # ASK FOR PLAYER 1 INPUT
+                    while col >= 7 or col < 0:
+                        pos_x = event.pos[0]
+                        col = int(math.floor(pos_x/SQUARE_SIZE))
+                if turn == 2:  # ASK FOR PLAYER 2 INPUT
+                    while col >= 7 or col < 0:
+                        pos_x = event.pos[0]
+                        col = int(math.floor(pos_x/SQUARE_SIZE))
+
+                if is_valid_location(board_1, col):
+                    row = get_next_open_row(board_1, col)
+                    drop_piece(board_1, row, col, turn)
+
+                if winning_move(board_1, turn):
+                    label = my_font.render('Congrats Player {}, you won!!'.format(turn), 1, GREEN)
+                    SCREEN.blit(label, (15, 10))
+                    # print('Congrats Player {}, you won!!'.format(turn))
+                    game_over = True
+
+                print_board(board_1)
+                draw_board(board_1)
+
+                turn = turn % 2  # THE FOLLOWING 2 LINES LOOPS BTW PLAY1 AN PLAY2
+                turn = turn + 1
+
+                if game_over:
+                    pygame.time.wait(3000)
+                    quit()
 
 
 if __name__ == '__main__':
